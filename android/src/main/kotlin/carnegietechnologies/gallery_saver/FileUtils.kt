@@ -36,10 +36,11 @@ internal object FileUtils {
      * @return true if image was saved successfully
      */
     fun insertImage(
-        contentResolver: ContentResolver,
-        path: String,
-        folderName: String?
+            contentResolver: ContentResolver,
+            path: String,
+            folderName: String?
     ): Boolean {
+
         val file = File(path)
         val extension = MimeTypeMap.getFileExtensionFromUrl(file.toString())
         val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
@@ -54,24 +55,14 @@ internal object FileUtils {
         val imageFilePath = File(albumDir, file.name).absolutePath
 
         val values = ContentValues()
-        if (android.os.Build.VERSION.SDK_INT < 29) {
-            values.put(MediaStore.Images.ImageColumns.DATA, imageFilePath)
-        }
-
+        values.put(MediaStore.Images.ImageColumns.DATA, imageFilePath)
         values.put(MediaStore.Images.Media.TITLE, file.name)
-        values.put(MediaStore.Images.Media.MIME_TYPE, mimeType)
-        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000)
-        values.put(MediaStore.Images.Media.DATE_MODIFIED, System.currentTimeMillis() / 1000)
         values.put(MediaStore.Images.Media.DISPLAY_NAME, file.name)
-        values.put(MediaStore.Images.Media.SIZE, file.length())
-
-        if (android.os.Build.VERSION.SDK_INT >= 29) {
-            values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + folderName)
-        }
+        values.put(MediaStore.Images.Media.MIME_TYPE, mimeType)
+        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis())
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
 
         var imageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-
         try {
             imageUri = contentResolver.insert(imageUri, values)
 
@@ -85,10 +76,11 @@ internal object FileUtils {
                     outputStream.write(source)
                 }
 
-                if (imageUri != null && android.os.Build.VERSION.SDK_INT < 29) {
+                if (imageUri != null) {
                     val pathId = ContentUris.parseId(imageUri)
                     val miniThumb = MediaStore.Images.Thumbnails.getThumbnail(
-                            contentResolver, pathId, MediaStore.Images.Thumbnails.MINI_KIND, null)
+                            contentResolver, pathId, MediaStore.Images.Thumbnails.MINI_KIND, null
+                    )
                     storeThumbnail(contentResolver, miniThumb, pathId)
                 }
             } else {
@@ -129,8 +121,8 @@ internal object FileUtils {
         val matrix = Matrix()
         matrix.preRotate(rotationInDegrees.toFloat())
         val adjustedBitmap = Bitmap.createBitmap(
-            bitmap, 0, 0,
-            bitmap.width, bitmap.height, matrix, true
+                bitmap, 0, 0,
+                bitmap.width, bitmap.height, matrix, true
         )
         bitmap.recycle()
 
@@ -147,9 +139,9 @@ internal object FileUtils {
      * @param id              - path id
      */
     private fun storeThumbnail(
-        contentResolver: ContentResolver,
-        source: Bitmap,
-        id: Long
+            contentResolver: ContentResolver,
+            source: Bitmap,
+            id: Long
     ) {
 
         val matrix = Matrix()
@@ -160,10 +152,10 @@ internal object FileUtils {
         matrix.setScale(scaleX, scaleY)
 
         val thumb = Bitmap.createBitmap(
-            source, 0, 0,
-            source.width,
-            source.height, matrix,
-            true
+                source, 0, 0,
+                source.width,
+                source.height, matrix,
+                true
         )
 
         val values = ContentValues()
@@ -173,17 +165,17 @@ internal object FileUtils {
         values.put(MediaStore.Images.Thumbnails.WIDTH, thumb.width)
 
         val thumbUri = contentResolver.insert(
-            MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI, values
+                MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI, values
         )
 
         var outputStream: OutputStream? = null
         try{
-        outputStream.use {
-            if (thumbUri != null) {
-                outputStream = contentResolver.openOutputStream(thumbUri)
-            }
-        }}catch (e: Exception){
-        //avoid crashing on devices that do not support thumb
+            outputStream.use {
+                if (thumbUri != null) {
+                    outputStream = contentResolver.openOutputStream(thumbUri)
+                }
+            }}catch (e: Exception){
+            //avoid crashing on devices that do not support thumb
         }
     }
 
@@ -210,8 +202,8 @@ internal object FileUtils {
     private fun getRotation(path: String): Int {
         val exif = ExifInterface(path)
         return exif.getAttributeInt(
-            ExifInterface.TAG_ORIENTATION,
-            ExifInterface.ORIENTATION_NORMAL
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
         )
     }
 
@@ -241,11 +233,12 @@ internal object FileUtils {
      * @return true if video was saved successfully
      */
     fun insertVideo(
-        contentResolver: ContentResolver,
-        inputPath: String,
-        folderName: String?,
-        bufferSize: Int = BUFFER_SIZE
+            contentResolver: ContentResolver,
+            inputPath: String,
+            folderName: String?,
+            bufferSize: Int = BUFFER_SIZE
     ): Boolean {
+
         val inputFile = File(inputPath)
         val inputStream: InputStream?
         val outputStream: OutputStream?
@@ -257,21 +250,13 @@ internal object FileUtils {
         val videoFilePath = File(albumDir, inputFile.name).absolutePath
 
         val values = ContentValues()
-        if (android.os.Build.VERSION.SDK_INT < 29) {
-            values.put(MediaStore.Images.ImageColumns.DATA, imageFilePath)
-        }
-
-        values.put(MediaStore.Images.Media.TITLE, file.name)
-        values.put(MediaStore.Images.Media.MIME_TYPE, mimeType)
-        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000)
-        values.put(MediaStore.Images.Media.DATE_MODIFIED, System.currentTimeMillis() / 1000)
-        values.put(MediaStore.Images.Media.DISPLAY_NAME, file.name)
-        values.put(MediaStore.Images.Media.SIZE, file.length())
-
-        if (android.os.Build.VERSION.SDK_INT >= 29) {
-            values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + folderName)
-        }
+        values.put(MediaStore.Video.VideoColumns.DATA, videoFilePath)
+        values.put(MediaStore.Video.Media.TITLE, inputFile.name)
+        values.put(MediaStore.Video.Media.DISPLAY_NAME, inputFile.name)
+        values.put(MediaStore.Video.Media.MIME_TYPE, mimeType)
+        // Add the date meta data to ensure the image is added at the front of the gallery
+        values.put(MediaStore.Video.Media.DATE_ADDED, System.currentTimeMillis())
+        values.put(MediaStore.Video.Media.DATE_TAKEN, System.currentTimeMillis())
 
 
         try {
@@ -307,11 +292,11 @@ internal object FileUtils {
                 Environment.DIRECTORY_PICTURES else
                 Environment.DIRECTORY_MOVIES
             createDirIfNotExist(
-                Environment.getExternalStoragePublicDirectory(baseFolderName).path
+                    Environment.getExternalStoragePublicDirectory(baseFolderName).path
             ) ?: albumFolderPath
         } else {
             createDirIfNotExist(albumFolderPath + File.separator + folderName)
-                ?: albumFolderPath
+                    ?: albumFolderPath
         }
         return albumFolderPath
     }
